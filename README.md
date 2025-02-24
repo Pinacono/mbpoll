@@ -5,9 +5,9 @@ Copyright © 2015-2023 Pascal JEAN, All rights reserved.
 
 ## Abstract
 
-mbpoll is a command line utility to communicate with ModBus slave (RTU or TCP).  
+mbpoll is a command line utility to communicate with ModBus slave (RTU or TCP).
 This is a multiplatform project, the compilation was tested on GNU Linux
-x86, x86_64, armhf and arm64 (Armbian/Raspbian), Microsoft Windows, and Mac OSX.  
+x86, x86_64, armhf and arm64 (Armbian/Raspbian), Microsoft Windows, and Mac OSX.
 
 Development of major version 1 of mbpoll is complete, **version 2 using libmodbuspp is under development.** Proposals for new features will be transferred to this new branch.
 
@@ -18,7 +18,7 @@ mbpoll can:
 - read input registers
 - read and write output registers (*holding register*)
 
-The reading and writing registers may be in decimal, hexadecimal or 
+The reading and writing registers may be in decimal, hexadecimal or
 floating single precision.
 
 > **Note:** mbpoll's output syntax and command line option syntax is similar to the original modpoll command line program published by proconX. However mbpoll is a completely independent project and based on different source code than the original modpoll program. mbpoll is distributed under the GPL license, but the original modpoll program is not covered by the GPL license.
@@ -26,7 +26,7 @@ floating single precision.
 
 ## Quickstart guide
 
-The fastest and safest way to install mbpoll is to use the APT 
+The fastest and safest way to install mbpoll is to use the APT
 repository from [piduino.org](http://apt.piduino.org), so you should do the following :
 
     wget -O- http://www.piduino.org/piduino-key.asc | sudo apt-key add -
@@ -34,12 +34,12 @@ repository from [piduino.org](http://apt.piduino.org), so you should do the foll
     sudo apt update
     sudo apt install mbpoll
 
-This repository provides `mbpoll` and `libmodbus` (version 3.1.4) packages for 
+This repository provides `mbpoll` and `libmodbus` (version 3.1.4) packages for
 `i386`, `amd64`, `armhf` and `arm64` architectures.
-In the above commands, the repository is a Debian Stretch distribution, but you 
-can also choose Ubuntu Trusty, Xenial or Bionic by replacing `stretch` with 
-`trusty`, `xenial` or `bionic`.  
-It may be necessary to install the `software-properties-common` 
+In the above commands, the repository is a Debian Stretch distribution, but you
+can also choose Ubuntu Trusty, Xenial or Bionic by replacing `stretch` with
+`trusty`, `xenial` or `bionic`.
+It may be necessary to install the `software-properties-common`
 package for `add-apt-repository`.
 
 For Raspbian you have to do a little different :
@@ -80,14 +80,14 @@ For example to query a debian system:
 
         $ sudo apt-get install cmake libcppdb-dev pkg-config libsqlite3-dev sqlite3 libudev-dev
         $ git clone https://github.com/epsilonrt/piduino.git
-        $ cd piduino 
+        $ cd piduino
         $ git checkout dev
         $ mkdir build
         $ cd build
         $ cmake ..
         $ make
         $ sudo make install
-    
+
 * Generate Makefile with cmake:
 
         $ sudo apt-get install cmake pkg-config
@@ -121,7 +121,7 @@ slave at address 33 connected through RTU /dev/ttyUSB2 (38400 Bd)
 ---
 
         $ mbpoll -a 33 -b 38400 -t 3 -r 1 -c 2 /dev/ttyUSB2
-        
+
         mbpoll 1.5 -  Modbus® Master Simulator
         Copyright (c) 2015-2023 Pascal JEAN, https://github.com/epsilonrt/mbpoll
         This program comes with ABSOLUTELY NO WARRANTY.
@@ -131,7 +131,7 @@ slave at address 33 connected through RTU /dev/ttyUSB2 (38400 Bd)
         Protocol configuration: Modbus RTU
         Slave configuration...: address = [33]
                                 start reference = 1, count = 2
-        Communication.........: /dev/ttyUSB2, 38400-8E1 
+        Communication.........: /dev/ttyUSB2, 38400-8E1
                                 t/o 1.00 s, poll rate 1000 ms
         Data type.............: 16-bit register, input register table
 
@@ -173,7 +173,7 @@ A complete help is available with the -h option:
                     If negative numbers are provided, it will precede the list of
                     data to be written by two dashes ('--'). for example :
                     mbpoll -t4:int /dev/ttyUSB0 -- 123 -1568 8974 -12
-    General options : 
+    General options :
       -m #          mode (rtu or tcp, TCP is default)
       -a #          Slave address (1-255 for rtu, 0-255 for tcp, 1 is default)
                     for reading, it is possible to give an address list
@@ -187,13 +187,17 @@ A complete help is available with the -h option:
                     information specific to a remote device (RTU only)
       -t 0          Discrete output (coil) data type (binary 0 or 1)
       -t 1          Discrete input data type (binary 0 or 1)
-      -t 3          16-bit input register data type
+      -t 3          16-bit input register data type with signed int display
+      -t 3:byte     16-bit input register data type with single byte display
       -t 3:int16    16-bit input register data type with signed int display
-      -t 3:hex      16-bit input register data type with hex display
+      -t 3:uint16   16-bit input register data type with unsigned int display
       -t 3:string   16-bit input register data type with string (char) display
-      -t 3:int      32-bit integer data type in input register table
+      -t 3:int32    32-bit signed integer data type in input register table
+      -t 3:uint32   32-bit unsigned integer data type in input register table
       -t 3:float    32-bit float data type in input register table
-      -t 4          16-bit output (holding) register data type (default)
+      -t 4          16-bit output (holding) register data type  with signed int display (default)
+      -t 4:byte     16-bit output (holding) register data type with single byte display
+      -t 4:int16    16-bit output (holding) register data type with signed int display
       -t 4:int16    16-bit output (holding) register data type with signed int display
       -t 4:hex      16-bit output (holding) register data type with hex display
       -t 4:string   16-bit output (holding) register data type with string (char) display
@@ -205,9 +209,9 @@ A complete help is available with the -h option:
       -l #          Poll rate in ms, ( > 100, 1000 is default)
       -o #          Time-out in seconds (0.01 - 10.00, 1.00 s is default)
       -q            Quiet mode.  Minimum output only
-    Options for ModBus / TCP : 
+    Options for ModBus / TCP :
       -p #          TCP port number (502 is default)
-    Options for ModBus RTU : 
+    Options for ModBus RTU :
       -b #          Baudrate (1200-921600, 19200 is default)
       -d #          Databits (7 or 8, 8 for RTU)
       -s #          Stopbits (1 or 2, 1 is default)
