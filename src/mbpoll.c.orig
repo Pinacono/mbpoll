@@ -75,27 +75,6 @@
 #endif
 
 /* types ==================================================================== */
-
-#ifndef byte
-#define byte unsigned char
-#endif
-
-#ifndef int16
-#define int16 int16_t
-#endif
-
-#ifndef uint16
-#define uint16 uint16_t
-#endif
-
-#ifndef int32
-#define int32 int32_t
-#endif
-
-#ifndef uint32
-#define uint32 uint32_t
-#endif
-
 typedef enum {
   eModeRtu,
   eModeTcp,
@@ -111,12 +90,11 @@ typedef enum {
 } eFunctions;
 
 typedef enum {
-  eFormatByte,
+  eFormatDec,
   eFormatInt16,
-  eFormatUint16,
+  eFormatHex,
   eFormatString,
-  eFormatInt32,
-  eFormatUint32,
+  eFormatInt,
   eFormatFloat,
   eFormatBin,
   eFormatUnknown = -1,
@@ -170,38 +148,30 @@ static const int iStopbitsList[] = {
 };
 #ifdef MBPOLL_FLOAT_DISABLE
 static const char * sFormatList[] = {
-  "byte",
   "int16",
-  "uint16",
+  "hex",
   "string",
-  "int32",
-  "uint32",
+  "int"
 };
 static const int iFormatList[] = {
-  eFormatByte,
-  eFormatInt16
-  eFormatUint16
+  eFormatInt16,
+  eFormatHex,
   eFormatString,
-  eFormatInt32,
-  eFormatUint32
+  eFormatInt
 };
 #else
 static const char * sFormatList[] = {
-  "byte",
   "int16",
-  "uint16",
+  "hex",
   "string",
-  "int32",
-  "uint32",
+  "int",
   "float"
 };
 static const int iFormatList[] = {
-  eFormatByte,
   eFormatInt16,
-  eFormatUint16,
+  eFormatHex,
   eFormatString,
-  eFormatInt32,
-  eFormatUint32,
+  eFormatInt,
   eFormatFloat
 };
 #endif
@@ -298,7 +268,7 @@ static xMbPollContext ctx = {
   // Paramètres
   .eMode = DEFAULT_MODE,
   .eFunction = DEFAULT_FUNCTION,
-  .eFormat = eFormatInt16,
+  .eFormat = eFormatDec,
   .piSlaveAddr = NULL,
   .iSlaveCount = -1,
   .piStartRef = NULL,
@@ -772,7 +742,7 @@ main (int argc, char **argv) {
             break;
 
           case eFuncHoldingReg:
-            if ( ctx.eFormat == eFormatInt32 || ctx.eFormat == eFormatUint32 ) {
+            if (ctx.eFormat == eFormatInt) {
               DINT32 (ctx.pvData, i) = lSwapLong (iGetInt (sDataStr, argv[arg], 10));
               PDEBUG ("Int[%d]=%"PRId32"\n", i, lSwapLong (DINT32 (ctx.pvData, i)));
             }
@@ -786,7 +756,7 @@ main (int argc, char **argv) {
             else if (ctx.eFormat == eFormatString) {
                 vSyntaxErrorExit ("You can use string format only for output");
             }
-            else if ( ctx.eFormat == eFormatInt16 || ctx.eFormat == eFormatUint16 ) {
+            else if (ctx.eFormat == eFormatInt16) {
               iValue = iGetInt (sDataStr, argv[arg], 0);
               vCheckIntRange (sDataStr, iValue, INT16_MIN, INT16_MAX);
               DUINT16 (ctx.pvData, i) = (uint16_t) iValue;
@@ -915,8 +885,8 @@ main (int argc, char **argv) {
       vPrintConfig (&ctx);
     }
 
-    // int32 et float utilisent 2 registres 32 bits
-    iNbReg = ( ( ctx.eFormat == eFormatInt32 ) || ( ctx.eFormat == eFormatUint32 ) || (ctx.eFormat == eFormatFloat)) ?
+    // int32 et float utilisent 2 registres 16 bits
+    iNbReg = ( (ctx.eFormat == eFormatInt) || (ctx.eFormat == eFormatFloat)) ?
              ctx.iCount * 2 : ctx.iCount;
 
     // Début de la boucle de scrutation
@@ -1070,31 +1040,28 @@ vPrintReadValues (int iAddr, int iCount, xMbPollContext * ctx) {
         iAddr++;
         break;
 
-      case eFormatByte:
-        uint8_t v = (unsigned char) DUINT8 (ctx->pvData, i);
-        printf ("%u (0x%02x)", v, v);
-        iAddr++;
-        break;
+      case eFormatDec: {
+        uint16_t v = DUINT16 (ctx->pvData, i);
+        if (v & 0x8000) {
 
-      case eFormatInt16: {
-        int16_t v_int16 = (int16_t) DUINT16 (ctx->pvData, i);
-        /*
-        if (v_int16 & 0x8000) {
-          printf ("%u (%d)", v_int16, (int) (int16_t) v_int16);
+          printf ("%u (%d)", v, (int) (int16_t) v);
         }
         else {
+
           printf ("%u", v);
         }
-        */
-        printf ("%d (0x%04X)", v_int16, v_int16);
         iAddr++;
 
       }
       break;
 
-      case eFormatUint16:
-        uint16_t v_uint = (uint16_t) (DUINT16 (ctx->pvData, i));
-        printf ("%u (0x%04X)", v_uint, v_uint);
+      case eFormatInt16:
+        printf ("%d", (int) (int16_t) (DUINT16 (ctx->pvData, i)));
+        iAddr++;
+        break;
+
+      case eFormatHex:
+        printf ("0x%04X", DUINT16 (ctx->pvData, i));
         iAddr++;
         break;
 
@@ -1103,15 +1070,8 @@ vPrintReadValues (int iAddr, int iCount, xMbPollContext * ctx) {
         iAddr++;
         break;
 
-      case eFormatInt32:
-        int32_t v_int32 = lSwapLong (DINT32 (ctx->pvData, i));
-        printf ("%d (0x%08X)", v_int32, v_int32);
-        iAddr += 2;
-        break;
-
-      case eFormatUint32:
-        uint32_t v_uint32 = (uint32_t) lSwapLong (DINT32 (ctx->pvData, i));
-        printf ("%u (0x%08X)", v_uint32, v_uint32);
+      case eFormatInt:
+        printf ("%d", lSwapLong (DINT32 (ctx->pvData, i)));
         iAddr += 2;
         break;
 
@@ -1254,7 +1214,7 @@ vPrintConfig (const xMbPollContext * ctx) {
       break;
 
     case eFuncInputReg:
-      if ( ctx->eFormat == eFormatInt32 || ctx->eFormat == eFormatUint32 ) {
+      if (ctx->eFormat == eFormatInt) {
         printf ("%s %s", sIntStr, ctx->bIsBigEndian ? sBigEndianStr : sLittleEndianStr);
       }
       else if (ctx->eFormat == eFormatFloat) {
@@ -1267,7 +1227,7 @@ vPrintConfig (const xMbPollContext * ctx) {
       break;
 
     case eFuncHoldingReg:
-      if ( ctx->eFormat == eFormatInt32 || ctx->eFormat == eFormatUint32 ) {
+      if (ctx->eFormat == eFormatInt) {
         printf ("%s %s", sIntStr, ctx->bIsBigEndian ? sBigEndianStr : sLittleEndianStr);
       }
       else if (ctx->eFormat == eFormatFloat) {
@@ -1300,7 +1260,7 @@ vAllocate (xMbPollContext * ctx) {
 
     case eFuncInputReg:
     case eFuncHoldingReg:
-      if ( (ctx->eFormat == eFormatInt32) || (ctx->eFormat == eFormatUint32) || (ctx->eFormat == eFormatFloat) ) {
+      if ( (ctx->eFormat == eFormatInt) || (ctx->eFormat == eFormatFloat)) {
         // Registres 32-bits
         ulDataSize *= 4;
       }
@@ -1466,22 +1426,18 @@ vUsage (FILE * stream, int exit_msg) {
            "  -t 0          Discrete output (coil) data type (binary 0 or 1)\n"
            "  -t 1          Discrete input data type (binary 0 or 1)\n"
            "  -t 3          16-bit input register data type\n"
-           "  -t 3:byte     8-bit input register data type\n"
            "  -t 3:int16    16-bit input register data type with signed int display\n"
-           "  -t 3:uint16   16-bit input register data type with unsigned int display\n"
+           "  -t 3:hex      16-bit input register data type with hex display\n"
            "  -t 3:string   16-bit input register data type with string (char) display\n"
-           "  -t 3:int32    32-bit integer data type in input register table\n"
-           "  -t 3:uint32   32-bit unsigned integer data type in input register table\n"
+           "  -t 3:int      32-bit integer data type in input register table\n"
 #ifndef MBPOLL_FLOAT_DISABLE
            "  -t 3:float    32-bit float data type in input register table\n"
 #endif
            "  -t 4          16-bit output (holding) register data type (default)\n"
-           "  -t 4:byte     8-bit output (holding) register data type\n"
            "  -t 4:int16    16-bit output (holding) register data type with signed int display\n"
-           "  -t 4:uint16   16-bit output (holding) register data type with unsigned int display\n"
+           "  -t 4:hex      16-bit output (holding) register data type with hex display\n"
            "  -t 4:string   16-bit output (holding) register data type with string (char) display\n"
-           "  -t 4:int32    32-bit integer data type in output (holding) register table\n"
-           "  -t 4:uint32   32-bit unsigned integer data type in output (holding) register table\n"
+           "  -t 4:int      32-bit integer data type in output (holding) register table\n"
 #ifndef MBPOLL_FLOAT_DISABLE
            "  -t 4:float    32-bit float data type in output (holding) register table\n"
 #endif
