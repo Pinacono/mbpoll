@@ -1,7 +1,9 @@
 # mbpoll
 
-Copyright © 2015-2023 Pascal JEAN, All rights reserved.
+Copyright @ 2025 Pinacono Co., Ltd.
 
+This is a fork from [epsilonrt/mbpoll](https://github.com/epsilonrt/mbpoll). This version
+adjusted command line parameters for better usability.
 
 ## Abstract
 
@@ -195,13 +197,14 @@ A complete help is available with the -h option:
       -t 3:int32    32-bit signed integer data type in input register table
       -t 3:uint32   32-bit unsigned integer data type in input register table
       -t 3:float    32-bit float data type in input register table
-      -t 4          16-bit output (holding) register data type  with signed int display (default)
+      -t 4          16-bit output (holding) register data type with signed int display (default)
       -t 4:byte     16-bit output (holding) register data type with single byte display
       -t 4:int16    16-bit output (holding) register data type with signed int display
-      -t 4:int16    16-bit output (holding) register data type with signed int display
+      -t 4:uint16   16-bit output (holding) register data type with unsigned int display
       -t 4:hex      16-bit output (holding) register data type with hex display
       -t 4:string   16-bit output (holding) register data type with string (char) display
-      -t 4:int      32-bit integer data type in output (holding) register table
+      -t 4:int32    32-bit signed integer data type in output (holding) register table
+      -t 4:uint32   32-bit unsigned integer data type in output (holding) register table
       -t 4:float    32-bit float data type in output (holding) register table
       -0            First reference is 0 (PDU addressing) instead 1
       -B            Big endian word order for 32-bit integer and float
@@ -227,7 +230,7 @@ A complete help is available with the -h option:
                     its progress.  This is helpful in debugging connection...
 
 ---
-> Copyright © 2015-2023 Pascal JEAN, All rights reserved.
+> Copyright © 2025 Pinacono Co.,Ltd. All rights reserved.
 
 > mbpoll is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
